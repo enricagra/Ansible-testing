@@ -1,0 +1,9 @@
+# params.yml
+---
+computer_name: {computer name}
+hostname: {hostname}
+domain_name: {domain name}
+workgroup_name: {workgroup}
+primary_dns_suffix: {dns suffix}
+domain_admin_user: {domain user}
+domain_admin_password: {domain password}
