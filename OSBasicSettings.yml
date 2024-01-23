@@ -1,0 +1,27 @@
+# OSBasicSettings.yml
+---
+- name: OS Basic Settings
+  hosts: win
+  gather_facts: true
+  tasks:
+    - name: Include parameters
+      include_vars:
+        file: params.yml
+
+    - name: setting up computer name
+      win_hostname:
+        name: "{{ computer_name }}"
+
+    - name: Setting up Domain Name
+      win_domain_membership:
+        hostname: "{{ hostname }}"
+        domain_name: "{{ domain_name }}"
+        domain_admin_user: "{{ domain_admin_user }}"
+        domain_admin_password: "{{ domain_admin_password }}"
+        state: 'domain'
+
+    - name: Host Reboot
+      win_reboot:
+      async: 0
+      poll: 0
+      register: reboot_result
