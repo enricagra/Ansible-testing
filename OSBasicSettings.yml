@@ -1,27 +1,31 @@
 # OSBasicSettings.yml
 ---
-- name: OS Basic Settings
+- name: OS Basic Settings Configuration
   hosts: win
   gather_facts: true
   tasks:
-    - name: Include parameters
+    - name: Include variables
       include_vars:
-        file: params.yml
+        file: param.yml
 
-    - name: setting up computer name
+    - name: Change computer name
       win_hostname:
         name: "{{ computer_name }}"
 
-    - name: Setting up Domain Name
+    - name: Set domain or workgroup name
       win_domain_membership:
-        hostname: "{{ hostname }}"
+        workgroup: "{{ workgroup_name }}"
         domain_name: "{{ domain_name }}"
-        domain_admin_user: "{{ domain_admin_user }}"
-        domain_admin_password: "{{ domain_admin_password }}"
-        state: 'domain'
+        state: "{{ 'workgroup' if workgroup_name else 'domain' }}"
 
-    - name: Host Reboot
-      win_reboot:
-      async: 0
-      poll: 0
-      register: reboot_result
+    - name: Set primary DNS suffix
+      win_dns_client:
+        primary_dns_suffix: "{{ primary_dns_suffix }}"
+
+    - name: Check activation status
+      win_shell: slmgr /xpr
+      register: activation_status
+
+    - name: Display activation status
+      debug:
+        msg: "Activation Status: {{ activation_status.stdout_lines[0] }}"
