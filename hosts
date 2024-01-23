@@ -1,0 +1,11 @@
+[win]
+{IP or hostname of your host}
+
+[win:vars]
+ansible_user={username}
+ansible_password={password}
+ansible_connection=ssh
+ansible_shell_type=cmd
+ansible_ssh_common_args=-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+ansible_ssh_retries=3
+ansible_become_method=runas
