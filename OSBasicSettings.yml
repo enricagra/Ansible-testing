@@ -1,31 +1,74 @@
 # OSBasicSettings.yml
 ---
-- name: OS Basic Settings Configuration
-  hosts: win
-  gather_facts: true
+---
+- hosts: win
+  gather_facts: no
+  vars_files:
+    - params.yml
   tasks:
-    - name: Include variables
-      include_vars:
-        file: param.yml
+    - name: Set Computer Name
+      win_shell: |
+        $ComputerInfo = Get-WmiObject Win32_ComputerSystem
+        $ComputerInfo.Rename("{{ computer_name }}")
 
-    - name: Change computer name
-      win_hostname:
-        name: "{{ computer_name }}"
+    - name: Check Domain Membership
+      win_shell: |
+        $ComputerInfo = Get-WmiObject Win32_ComputerSystem
+        $ComputerInfo.PartOfDomain
+      register: domain_status
 
-    - name: Set domain or workgroup name
+    - name: Join Domain
       win_domain_membership:
-        workgroup: "{{ workgroup_name }}"
+        hostname: "{{ computer_name }}"
         domain_name: "{{ domain_name }}"
-        state: "{{ 'workgroup' if workgroup_name else 'domain' }}"
+        username: "{{ domain_admin_username }}"
+        password: "{{ domain_admin_password }}"
+        state: domain
+      when: "not domain_status.stdout"
+      register: reboot_result
 
-    - name: Set primary DNS suffix
+    - name: Additional Task if Domain is Present
+      # Your additional tasks here
+      debug:
+        msg: "Do something additional since the host is part of the domain"
+
+    - name: Check Workgroup Membership
+      win_shell: |
+        (Get-WmiObject Win32_ComputerSystem).Workgroup
+      register: workgroup_status
+
+    - name: Join Workgroup
+      win_domain_membership:
+        hostname: "{{ computer_name }}"
+        workgroup: "{{ workgroup_name }}"
+        state: workgroup
+      when: "not domain_status.stdout and not workgroup_status.stdout"
+      register: reboot_result
+
+    - name: Additional Task if Workgroup is Present
+      # Your additional tasks here
+      debug:
+        msg: "Do something additional since the host is part of the workgroup"
+
+    - name: Set Primary DNS Suffix
       win_dns_client:
         primary_dns_suffix: "{{ primary_dns_suffix }}"
+      when: "not domain_status.stdout and not workgroup_status.stdout"
 
-    - name: Check activation status
-      win_shell: slmgr /xpr
+    - name: Configure Windows Update Settings (Advanced Options)
+      win_regedit:
+        key: "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WindowsUpdate\\Auto Update"
+        name: "AUOptions"
+        data: "3"
+        type: dword
+      when: "not domain_status.stdout and not workgroup_status.stdout"
+
+    - name: Check Activation Status
+      win_shell: |
+        (Get-CimInstance -ClassName SoftwareLicensingProduct -Filter "Name like 'Windows%'").LicenseStatus
       register: activation_status
 
-    - name: Display activation status
+    - name: Display Activation Status
       debug:
-        msg: "Activation Status: {{ activation_status.stdout_lines[0] }}"
+        msg: "Activation Status: {{ activation_status.stdout }}"
+
