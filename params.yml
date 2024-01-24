@@ -1,6 +1,6 @@
 # params.yml
 ---
-computer_name: "ansible-test1"
+computer_name: "your_computer_name"
 domain_name: "your_domain_name"
 domain_admin_username: "your_domain_admin_username"
 domain_admin_password: "your_domain_admin_password"
