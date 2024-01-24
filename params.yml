@@ -1,9 +1,9 @@
 # params.yml
 ---
-computer_name: {computer name}
-hostname: {hostname}
-domain_name: {domain name}
-workgroup_name: {workgroup}
-primary_dns_suffix: {dns suffix}
-domain_admin_user: {domain user}
-domain_admin_password: {domain password}
+computer_name: "ansible-test1"
+domain_name: "your_domain_name"
+domain_admin_username: "your_domain_admin_username"
+domain_admin_password: "your_domain_admin_password"
+workgroup_name: "your_workgroup_name"
+primary_dns_suffix: "your_primary_dns_suffix"
+
