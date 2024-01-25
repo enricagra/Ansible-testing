@@ -4,7 +4,7 @@
 - hosts: win
   gather_facts: no
   vars_files:
-    - params.yml
+    - windows_update_params.yml
   tasks:
     - name: Set Computer Name
       win_shell: |
@@ -63,6 +63,46 @@
         type: dword
       when: "not domain_status.stdout and not workgroup_status.stdout"
 
+    - name: Configure Windows Security Settings
+      win_regedit:
+        key: "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System"
+        name: "LocalAccountTokenFilterPolicy"
+        data: "1"
+        type: dword
+      when: "not domain_status.stdout and not workgroup_status.stdout"
+
+      # Additional security-related settings can be added here as needed
+
+    - name: Configure Diagnostic & Feedback Settings
+      win_regedit:
+        key: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection"
+        name: "AllowTelemetry"
+        data: "0"
+        type: dword
+      when: "not domain_status.stdout and not workgroup_status.stdout"
+
+    - name: Configure Internet Explorer Enhanced Security Configuration (IE ESC)
+      win_regedit:
+        key: "HKLM:\\SOFTWARE\\Microsoft\\Active Setup\\Installed Components\\{A509B1A7-37EF-4b3f-8CFC-4F3A74704073}"
+        name: "IsInstalled"
+        data: "0"
+        type: dword
+      when: "not domain_status.stdout and not workgroup_status.stdout"
+
+    - name: Configure Remote Management
+      win_shell: |
+        Enable-PSRemoting -Force
+      when: "not domain_status.stdout and not workgroup_status.stdout"
+
+    - name: Allow Remote Management in Windows Firewall
+      win_firewall_rule:
+        name: "WinRM-HTTP-In-TCP"
+        direction: "in"
+        action: "allow"
+        protocol: "tcp"
+        local_port: "5985"
+      when: "not domain_status.stdout and not workgroup_status.stdout"
+
     - name: Check Activation Status
       win_shell: |
         (Get-CimInstance -ClassName SoftwareLicensingProduct -Filter "Name like 'Windows%'").LicenseStatus
@@ -71,4 +111,3 @@
     - name: Display Activation Status
       debug:
         msg: "Activation Status: {{ activation_status.stdout }}"
-
