@@ -1,9 +1,20 @@
 # params.yml
 ---
-computer_name: "your_computer_name"
+computer_name: "ansible-test1"
 domain_name: "your_domain_name"
 domain_admin_username: "your_domain_admin_username"
 domain_admin_password: "your_domain_admin_password"
 workgroup_name: "your_workgroup_name"
 primary_dns_suffix: "your_primary_dns_suffix"
+new_user_name: "new_user"
+new_user_password: "new_user_password"
+new_user_groups:
+  - "Administrators"
+  - "Users"
+new_group_name: "new_group"
+user_info_username: "user_info"
+user_info_full_name: "User Info"
+user_info_description: "Description for User Info"
+user_info_password: "user_info_password"
+
 
