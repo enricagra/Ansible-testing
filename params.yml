@@ -1,6 +1,6 @@
 # params.yml
----
-computer_name: "ansible-test1"
+
+computer_name: "your_computer_name"
 domain_name: "your_domain_name"
 domain_admin_username: "your_domain_admin_username"
 domain_admin_password: "your_domain_admin_password"
@@ -16,5 +16,6 @@ user_info_username: "user_info"
 user_info_full_name: "User Info"
 user_info_description: "Description for User Info"
 user_info_password: "user_info_password"
-
-
+data_disk_number: 1  # Replace with the correct data disk number
+temp_drive_letter: "D:"  # Replace with the temporary drive letter for pagefile.sys
+remote_desktop_reg_file: "/path/to/remote_desktop_settings.reg"  # Replace with the path to your registry file
