@@ -1,3 +1,5 @@
+# OSBasicSettings2.yml
+---
 ---
 - hosts: win
   gather_facts: no
