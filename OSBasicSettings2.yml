@@ -1,0 +1,29 @@
+---
+- hosts: win
+  gather_facts: no
+  vars_files:
+    - windows_update_params.yml
+
+  tasks:
+    - name: Initialization of Data disk
+      win_disk_initialize:
+        disk_number: 1  # Replace with the correct disk number
+      when: "not domain_status.stdout and not workgroup_status.stdout"
+
+    - name: Movement of pagefile.sys to C drive
+      win_pagefile:
+        drive: C:
+        state: present
+      when: "not domain_status.stdout and not workgroup_status.stdout"
+
+    - name: Changing of drive letters
+      win_disk:
+        drive_letter: E:  # Replace with the correct drive letter
+        partition_number: 2  # Replace with the correct partition number
+      when: "not domain_status.stdout and not workgroup_status.stdout"
+
+    - name: Movement of pagefile.sys to temporary drive storage
+      win_pagefile:
+        drive: D:  # Replace with the temporary drive letter
+        state: present
+      when: "not domain_status.stdout and not workgroup_status.stdout"
