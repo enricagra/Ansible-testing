@@ -4,12 +4,12 @@
 - hosts: win
   gather_facts: no
   vars_files:
-    - windows_update_params.yml
+    - params.yml
 
   tasks:
     - name: Initialization of Data disk
       win_disk_initialize:
-        disk_number: 1  # Replace with the correct disk number
+        disk_number: "{{ data_disk_number }}"
       when: "not domain_status.stdout and not workgroup_status.stdout"
 
     - name: Movement of pagefile.sys to C drive
@@ -20,12 +20,52 @@
 
     - name: Changing of drive letters
       win_disk:
-        drive_letter: E:  # Replace with the correct drive letter
+        drive_letter: "{{ temp_drive_letter }}"
         partition_number: 2  # Replace with the correct partition number
       when: "not domain_status.stdout and not workgroup_status.stdout"
 
     - name: Movement of pagefile.sys to temporary drive storage
       win_pagefile:
-        drive: D:  # Replace with the temporary drive letter
+        drive: "{{ temp_drive_letter }}"
         state: present
+      when: "not domain_status.stdout and not workgroup_status.stdout"
+
+    # Add other tasks as needed...
+
+    - name: Windows Logs Configurations
+      # Add tasks for Windows Logs configurations as needed
+      debug:
+        msg: "Configure Windows Logs settings here"
+      when: "not domain_status.stdout and not workgroup_status.stdout"
+
+
+	- name: Setting up Remote Desktop Settings
+	   win_reg_stat:
+            key: "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server"
+       register: reg_stat_result
+	
+	- name: Enable Remote Desktop
+		win_regmerge:
+			path: "/path/to/remote_desktop_settings.reg"  # Replace with the path to your registry file
+		when: "not domain_status.stdout and not workgroup_status.stdout and not reg_stat_result.exists"
+
+	- name: Disable Windows Firewall on all Profiles
+		 hosts: all
+		  gather_facts: no
+		 tasks:
+		 
+    - name: Disable Windows Firewall
+      win_firewall:
+        state: disabled
+        profiles:
+        - Domain
+        - Public
+        - Private
+
+	- name: Configuration of processor scheduling and virtual memory
+      win_regedit:
+        key: "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl"
+        name: "Win32PrioritySeparation"
+        data: "2"
+        type: dword
       when: "not domain_status.stdout and not workgroup_status.stdout"
