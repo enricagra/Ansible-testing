@@ -62,10 +62,33 @@
         - Public
         - Private
 
-	- name: Configuration of processor scheduling and virtual memory
+     - name: Configuration of processor scheduling and virtual memory
       win_regedit:
         key: "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl"
         name: "Win32PrioritySeparation"
         data: "2"
         type: dword
       when: "not domain_status.stdout and not workgroup_status.stdout"
+
+          - name: System Startup & System failure configuration
+      win_regedit:
+        key: "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\CrashControl"
+        name: "AutoReboot"
+        data: "1"
+        type: dword
+      when: "not domain_status.stdout and not workgroup_status.stdout"
+
+    - name: Global Configuration Settings
+      # Add tasks for global configurations as needed
+      debug:
+        msg: "Configure global settings here"
+      when: "not domain_status.stdout and not workgroup_status.stdout"
+
+    - name: Time Providers
+      # Add tasks for time providers configuration as needed
+      debug:
+        msg: "Configure time providers here"
+      when: "not domain_status.stdout and not workgroup_status.stdout"
+
+    - name: Service Name Configuration
+      # Add tasks for service name configuration as needed
