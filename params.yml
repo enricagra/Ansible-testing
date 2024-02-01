@@ -19,3 +19,19 @@ user_info_password: "user_info_password"
 data_disk_number: 1  # Replace with the correct data disk number
 temp_drive_letter: "D:"  # Replace with the temporary drive letter for pagefile.sys
 remote_desktop_reg_file: "/path/to/remote_desktop_settings.reg"  # Replace with the path to your registry file
+
+global_config_registry_path: "HKLM:\Software\YourCompany\GlobalSettings"
+global_config_data:
+Setting1: "Value1"
+Setting2: "Value2"
+global_config_type: dword
+global_config_state: present
+
+time_provider_peerlist: "time.windows.com"
+time_provider_syncflags: "manual"
+time_provider_reliable: "YES"
+
+service_config_name: "YourServiceName"
+service_config_start_mode: "auto"
+service_config_state: "started"
+
