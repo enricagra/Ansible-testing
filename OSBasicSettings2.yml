@@ -79,18 +79,26 @@
       when: "not domain_status.stdout and not workgroup_status.stdout"
 
     ---
+---
 - name: Global Configuration Settings
   # Add tasks for global configurations as needed
   win_reg_stat:
     path: "{{ global_config_registry_path }}"
   register: reg_status
 
-  win_reg:
-    name: "{{ global_config_registry_path }}"
-    data: "{{ global_config_data }}"
-    type: "{{ global_config_type }}"
-    state: "{{ global_config_state }}"
-  when: "not domain_status.stdout and not workgroup_status.stdout and not reg_status.exists"
+  - name: Create registry path if it doesn't exist
+    win_reg:
+      name: "{{ global_config_registry_path }}"
+      state: present
+    when: "not domain_status.stdout and not workgroup_status.stdout and not reg_status.exists"
+
+  - name: Set registry values
+    win_reg:
+      name: "{{ global_config_registry_path }}"
+      data: "{{ global_config_data }}"
+      type: "{{ global_config_type }}"
+      state: "{{ global_config_state }}"
+    when: "not domain_status.stdout and not workgroup_status.stdout and not reg_status.exists"
 
 - name: Time Providers
   # Add tasks for time providers configuration as needed
@@ -103,4 +111,33 @@
     name: "{{ service_config_name }}"
     start_mode: "{{ service_config_start_mode }}"
     state: "{{ service_config_state }}"
+  when: "not domain_status.stdout and not workgroup_status.stdout"
+
+- name: IPv6 Configuration
+  # Add tasks for IPv6 registry settings
+  win_reg:
+    name: "{{ ipv6_config_registry_path }}"
+    data: "{{ ipv6_config_data }}"
+    type: "{{ ipv6_config_type }}"
+    state: "{{ ipv6_config_state }}"
+  when: "not domain_status.stdout and not workgroup_status.stdout"
+
+- name: File Explorer Configuration
+  # Add tasks for File Explorer settings
+  win_shell: |
+    Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name Hidden -Value {{ file_explorer_config_show_hidden_files }}
+    Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name HideFileExt -Value {{ file_explorer_config_show_file_extensions }}
+    Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name ShowFullPath -Value {{ file_explorer_config_show_full_path }}
+  when: "not domain_status.stdout and not workgroup_status.stdout"
+
+- name: Event Logging Configuration
+  # Add tasks for Event Logging settings
+  win_reg:
+    name: "HKLM:\SYSTEM\CurrentControlSet\Services\EventLog\Security"
+    data:
+      AuditPolicy: "{{ event_logging_config_audit_policy }}"
+      MaxSize: "{{ event_logging_config_max_size_kb }}"
+      Retention: "{{ event_logging_config_log_retention }}"
+    type: dword
+    state: present
   when: "not domain_status.stdout and not workgroup_status.stdout"
