@@ -39,17 +39,17 @@
       when: "not domain_status.stdout and not workgroup_status.stdout"
 
 
-	- name: Setting up Remote Desktop Settings
+     - name: Setting up Remote Desktop Settings
 	   win_reg_stat:
             key: "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server"
        register: reg_stat_result
 	
-	- name: Enable Remote Desktop
+     - name: Enable Remote Desktop
 		win_regmerge:
 			path: "/path/to/remote_desktop_settings.reg"  # Replace with the path to your registry file
 		when: "not domain_status.stdout and not workgroup_status.stdout and not reg_stat_result.exists"
 
-	- name: Disable Windows Firewall on all Profiles
+     - name: Disable Windows Firewall on all Profiles
 		 hosts: all
 		  gather_facts: no
 		 tasks:
@@ -78,17 +78,29 @@
         type: dword
       when: "not domain_status.stdout and not workgroup_status.stdout"
 
-    - name: Global Configuration Settings
-      # Add tasks for global configurations as needed
-      debug:
-        msg: "Configure global settings here"
-      when: "not domain_status.stdout and not workgroup_status.stdout"
+    ---
+- name: Global Configuration Settings
+  # Add tasks for global configurations as needed
+  win_reg_stat:
+    path: "{{ global_config_registry_path }}"
+  register: reg_status
 
-    - name: Time Providers
-      # Add tasks for time providers configuration as needed
-      debug:
-        msg: "Configure time providers here"
-      when: "not domain_status.stdout and not workgroup_status.stdout"
+  win_reg:
+    name: "{{ global_config_registry_path }}"
+    data: "{{ global_config_data }}"
+    type: "{{ global_config_type }}"
+    state: "{{ global_config_state }}"
+  when: "not domain_status.stdout and not workgroup_status.stdout and not reg_status.exists"
 
-    - name: Service Name Configuration
-      # Add tasks for service name configuration as needed
+- name: Time Providers
+  # Add tasks for time providers configuration as needed
+  win_command: w32tm /config /manualpeerlist:"{{ time_provider_peerlist }}" /syncfromflags:"{{ time_provider_syncflags }}" /reliable:"{{ time_provider_reliable }}" /update
+  when: "not domain_status.stdout and not workgroup_status.stdout"
+
+- name: Service Name Configuration
+  # Add tasks for service name configuration as needed
+  win_service:
+    name: "{{ service_config_name }}"
+    start_mode: "{{ service_config_start_mode }}"
+    state: "{{ service_config_state }}"
+  when: "not domain_status.stdout and not workgroup_status.stdout"
