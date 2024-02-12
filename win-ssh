@@ -1,7 +1,6 @@
 
 #######################
 Windows server commands:
-Below are the commands I ran in this turorial:
 
 Get-WindowsCapability -Online | Where-Object Name -like 'OpenSSH*'
 
