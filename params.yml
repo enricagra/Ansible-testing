@@ -1,52 +1,31 @@
 # params.yml
-
-computer_name: "your_computer_name"
-domain_name: "your_domain_name"
-domain_admin_username: "your_domain_admin_username"
-domain_admin_password: "your_domain_admin_password"
-workgroup_name: "your_workgroup_name"
-primary_dns_suffix: "your_primary_dns_suffix"
-new_user_name: "new_user"
-new_user_password: "new_user_password"
+---
+computer_name: jeric-testing2
+domain_netbios_name: jeric-testing2
+hostname: jeric-testing1
+domain_name: jeric-domain
+workgroup_name: jeric-testing1
+primary_dns_suffix: jeric-testing.local
+dns_servers: 8.8.8.8
+domain_admin_user: Administrator
+domain_admin_password: 123Qwe1!
+safe_mode_administrator_password: 123Qwe1!
+user_name: jeric
+full_name: jeric agra
+user_description: for testing only
+user_password: p@ssw0rd123-
 new_user_groups:
   - "Administrators"
   - "Users"
-new_group_name: "new_group"
-user_info_username: "user_info"
-user_info_full_name: "User Info"
-user_info_description: "Description for User Info"
-user_info_password: "user_info_password"
-data_disk_number: 1  # Replace with the correct data disk number
-temp_drive_letter: "D:"  # Replace with the temporary drive letter for pagefile.sys
+new_group_name: test
+group_description : for test only
+user_info_username: "test-user"
+user_info_full_name: "testing user"
+user_info_description: "tester"
+user_info_password: "p@ssword123-"
+partition_number: 0
+data_disk_number: 0
+data_drive_letter: "D"  # Replace with the correct data disk number
+data_folder_path: "D:\\data"
+temp_drive_letter: "C:"  # Replace with the temporary drive letter for pagefile.sys
 remote_desktop_reg_file: "/path/to/remote_desktop_settings.reg"  # Replace with the path to your registry file
-
-global_config_registry_path: "HKLM:\Software\Setting\GlobalSettings"
-global_config_data:
-  Setting1: "Value1"
-  Setting2: "Value2"
-global_config_type: dword
-global_config_state: present
-
-time_provider_peerlist: "timezone"
-time_provider_syncflags: "manual/automatic"
-time_provider_reliable: "YES/NO"
-
-service_config_name: "YourServiceName"
-service_config_start_mode: "auto"
-service_config_state: "started"
-
-ipv6_config_registry_path: "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters"
-ipv6_config_data:
-  DisableComponents: "0"
-ipv6_config_type: dword
-ipv6_config_state: present
-
-file_explorer_config_show_hidden_files: "1"
-file_explorer_config_show_file_extensions: "1"
-file_explorer_config_show_full_path: "1"
-
-event_logging_config_audit_policy: "1"  # Enable Audit Policy (0 to disable)
-event_logging_config_log_retention: "30"  # Set Log Retention in days
-event_logging_config_max_size_kb: "20480"  # Set Maximum Log Size in KB
-
-
