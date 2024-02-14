@@ -1,6 +1,11 @@
-#OSBasicSettings2.yml
-- 
-  hosts: win
+# OSBasicSettings.yml
+---
+- hosts: win
+  collections:
+    - ansible.windows
+  gather_facts: no
+  vars_files:
+    - params.yml
   tasks:
     - name: Initialize disk
       win_disk_image:
