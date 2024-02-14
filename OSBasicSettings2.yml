@@ -1,143 +1,74 @@
-# OSBasicSettings2.yml
----
----
-- hosts: win
-  gather_facts: no
-  vars_files:
-    - params.yml
-
+#OSBasicSettings2.yml
+- 
+  hosts: win
   tasks:
-    - name: Initialization of Data disk
-      win_disk_initialize:
-        disk_number: "{{ data_disk_number }}"
-      when: "not domain_status.stdout and not workgroup_status.stdout"
+    - name: Initialize disk
+      win_disk_image:
+        disk_number: "{{ disk_number }}"  # Specify the disk number
+        initialize: yes
+        offline: yes
 
-    - name: Movement of pagefile.sys to C drive
-      win_pagefile:
-        drive: C:
+    - name: Create partition
+      win_disk_image:
+        disk_number: "{{ disk_number }}"  # Specify the disk number
+        partition_size: "{{ partition_size }}"  # Specify the partition size
+        offline: yes
+        drive_letter: "{{ drive_letter }}"  # Specify the desired drive letter
         state: present
-      when: "not domain_status.stdout and not workgroup_status.stdout"
 
-    - name: Changing of drive letters
-      win_disk:
-        drive_letter: "{{ temp_drive_letter }}"
-        partition_number: 2  # Replace with the correct partition number
-      when: "not domain_status.stdout and not workgroup_status.stdout"
+    - name: Format partition
+      win_format:
+        drive_letter: "{{ drive_letter }}"  # Specify the drive letter
+        fs_type: "{{ filesystem_type }}"  # Specify the filesystem type, e.g., NTFS
+        confirm: yes
 
-    - name: Movement of pagefile.sys to temporary drive storage
-      win_pagefile:
-        drive: "{{ temp_drive_letter }}"
+    - name: Mount partition
+      win_disk_image:
+        disk_number: "{{ disk_number }}"  # Specify the disk number
+        drive_letter: "{{ drive_letter }}"  # Specify the drive letter
+        mount_path: "{{ mount_path }}"  # Specify the mount path
+        offline: yes
         state: present
-      when: "not domain_status.stdout and not workgroup_status.stdout"
 
-    # Add other tasks as needed...
+    - name: Move paging file to C:\ drive
+      win_pagefile:
+        drive: "C:"  # Move paging file to C:\ drive
 
-    - name: Windows Logs Configurations
-      # Add tasks for Windows Logs configurations as needed
-      debug:
-        msg: "Configure Windows Logs settings here"
-      when: "not domain_status.stdout and not workgroup_status.stdout"
-
-
-     - name: Setting up Remote Desktop Settings
-	   win_reg_stat:
-            key: "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server"
-       register: reg_stat_result
+    - name: Change drive letter
+      win_disk_partition:
+        disk_number: "{{ disk_number }}"  # Specify the disk number
+        partition_number: 1  # Assuming it's the first partition on the disk
+        drive_letter: "{{ new_drive_letter }}"  # Specify the new drive letter
+		
+	- name: Move paging file to temporary storage drive
+      win_pagefile:
+        drive: "{{ temporary_drive_letter }}"
 	
-     - name: Enable Remote Desktop
-		win_regmerge:
-			path: "/path/to/remote_desktop_settings.reg"  # Replace with the path to your registry file
-		when: "not domain_status.stdout and not workgroup_status.stdout and not reg_stat_result.exists"
+	- name: Install SNMP Service
+      win_feature:
+        name: SNMP-Service
+        state: present
+		
+	- name: Configure Remote Desktop settings
+      win_shell: |
+        # Disable Remote Desktop
+        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 1 -Force
 
-     - name: Disable Windows Firewall on all Profiles
-		 hosts: all
-		  gather_facts: no
-		 tasks:
-		 
-    - name: Disable Windows Firewall
-      win_firewall:
-        state: disabled
-        profiles:
-        - Domain
-        - Public
-        - Private
+        # Allow Remote Desktop
+        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0 -Force
 
-     - name: Configuration of processor scheduling and virtual memory
-      win_regedit:
-        key: "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl"
-        name: "Win32PrioritySeparation"
-        data: "2"
-        type: dword
-      when: "not domain_status.stdout and not workgroup_status.stdout"
+        # Allow connections only from computers running Remote Desktop with Network Level Authentication (NLA)
+        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1 -Force
+	
+	- name: Configure Windows Defender Firewall
+      win_shell: |
+        # Turn on Windows Defender Firewall for Domain, Public, and Private profiles
+        Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled True
 
-          - name: System Startup & System failure configuration
-      win_regedit:
-        key: "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\CrashControl"
-        name: "AutoReboot"
-        data: "1"
-        type: dword
-      when: "not domain_status.stdout and not workgroup_status.stdout"
+        # OR, to turn off Windows Defender Firewall for Domain, Public, and Private profiles
+        # Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False
 
-    ---
----
-- name: Global Configuration Settings
-  # Add tasks for global configurations as needed
-  win_reg_stat:
-    path: "{{ global_config_registry_path }}"
-  register: reg_status
-
-  - name: Create registry path if it doesn't exist
-    win_reg:
-      name: "{{ global_config_registry_path }}"
-      state: present
-    when: "not domain_status.stdout and not workgroup_status.stdout and not reg_status.exists"
-
-  - name: Set registry values
-    win_reg:
-      name: "{{ global_config_registry_path }}"
-      data: "{{ global_config_data }}"
-      type: "{{ global_config_type }}"
-      state: "{{ global_config_state }}"
-    when: "not domain_status.stdout and not workgroup_status.stdout and not reg_status.exists"
-
-- name: Time Providers
-  # Add tasks for time providers configuration as needed
-  win_command: w32tm /config /manualpeerlist:"{{ time_provider_peerlist }}" /syncfromflags:"{{ time_provider_syncflags }}" /reliable:"{{ time_provider_reliable }}" /update
-  when: "not domain_status.stdout and not workgroup_status.stdout"
-
-- name: Service Name Configuration
-  # Add tasks for service name configuration as needed
-  win_service:
-    name: "{{ service_config_name }}"
-    start_mode: "{{ service_config_start_mode }}"
-    state: "{{ service_config_state }}"
-  when: "not domain_status.stdout and not workgroup_status.stdout"
-
-- name: IPv6 Configuration
-  # Add tasks for IPv6 registry settings
-  win_reg:
-    name: "{{ ipv6_config_registry_path }}"
-    data: "{{ ipv6_config_data }}"
-    type: "{{ ipv6_config_type }}"
-    state: "{{ ipv6_config_state }}"
-  when: "not domain_status.stdout and not workgroup_status.stdout"
-
-- name: File Explorer Configuration
-  # Add tasks for File Explorer settings
-  win_shell: |
-    Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name Hidden -Value {{ file_explorer_config_show_hidden_files }}
-    Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name HideFileExt -Value {{ file_explorer_config_show_file_extensions }}
-    Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name ShowFullPath -Value {{ file_explorer_config_show_full_path }}
-  when: "not domain_status.stdout and not workgroup_status.stdout"
-
-- name: Event Logging Configuration
-  # Add tasks for Event Logging settings
-  win_reg:
-    name: "HKLM:\SYSTEM\CurrentControlSet\Services\EventLog\Security"
-    data:
-      AuditPolicy: "{{ event_logging_config_audit_policy }}"
-      MaxSize: "{{ event_logging_config_max_size_kb }}"
-      Retention: "{{ event_logging_config_log_retention }}"
-    type: dword
-    state: present
-  when: "not domain_status.stdout and not workgroup_status.stdout"
+    - name: Restart the system to apply changes
+      win_reboot:
+        reboot_timeout: 300
+        msg: "Rebooting to apply changes"
