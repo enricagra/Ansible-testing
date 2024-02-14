@@ -45,16 +45,16 @@
         partition_number: 1  # Assuming it's the first partition on the disk
         drive_letter: "{{ new_drive_letter }}"  # Specify the new drive letter
 		
-	- name: Move paging file to temporary storage drive
+     - name: Move paging file to temporary storage drive
       win_pagefile:
         drive: "{{ temporary_drive_letter }}"
 	
-	- name: Install SNMP Service
+     - name: Install SNMP Service
       win_feature:
         name: SNMP-Service
         state: present
 		
-	- name: Configure Remote Desktop settings
+     - name: Configure Remote Desktop settings
       win_shell: |
         # Disable Remote Desktop
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 1 -Force
@@ -65,13 +65,38 @@
         # Allow connections only from computers running Remote Desktop with Network Level Authentication (NLA)
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1 -Force
 	
-	- name: Configure Windows Defender Firewall
+     - name: Configure Windows Defender Firewall
       win_shell: |
         # Turn on Windows Defender Firewall for Domain, Public, and Private profiles
         Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled True
 
         # OR, to turn off Windows Defender Firewall for Domain, Public, and Private profiles
         # Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False
+
+      - name: Configure Performance Settings
+      win_shell: |
+        # Configure Processor Scheduling
+        $processorScheduling = Get-WmiObject -Query "SELECT * FROM Win32_SystemDriver WHERE Name='Processor'" -Namespace "root\cimv2"
+        $processorScheduling.Properties_.Item("Start").Value = 1
+        $processorScheduling.Put()
+
+        # Configure Virtual Memory
+        $virtualMemory = Get-WmiObject -Query "SELECT * FROM Win32_PageFileSetting WHERE Name='_Total'" -Namespace "root\cimv2"
+        $virtualMemory.InitialSize = "{{ initial_pagefile_size }}"  # Initial size in MB
+        $virtualMemory.MaximumSize = "{{ maximum_pagefile_size }}"  # Maximum size in MB
+        $virtualMemory.Put()
+
+        # Configure Automatically manage paging file size for all drives
+        $pagingFileSize = Get-WmiObject -Class Win32_ComputerSystem -Namespace "root\cimv2"
+        $pagingFileSize.AutomaticManagedPagefile = $True
+        $pagingFileSize.Put()
+
+        # Configure Paging file size for each drive
+        $pagingFile = Get-WmiObject -Query "SELECT * FROM Win32_PageFileSetting WHERE Name='_Total'" -Namespace "root\cimv2"
+        $pagingFile.InitialSize = "{{ initial_pagefile_size }}"  # Initial size in MB
+        $pagingFile.MaximumSize = "{{ maximum_pagefile_size }}"  # Maximum size in MB
+        $pagingFile.Put()
+	
 
     - name: Restart the system to apply changes
       win_reboot:
