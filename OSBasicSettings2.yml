@@ -1,4 +1,4 @@
-# OSBasicSettings.yml
+# OSBasicSettings2.yml
 ---
 - hosts: win
   collections:
