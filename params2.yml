@@ -1,0 +1,10 @@
+# params2.yml
+disk_number: 0
+partition_size: 102400  # in MB
+drive_letter: "D"
+filesystem_type: "NTFS"
+mount_path: "D:\\"
+new_drive_letter: "E"
+temporary_drive_letter: "F"
+initial_pagefile_size: 2048  # in MB
+maximum_pagefile_size: 4096  # in MB
