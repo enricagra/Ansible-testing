@@ -12,6 +12,7 @@
         disk_number: "{{ disk_number }}"  # Specify the disk number
         initialize: yes
         offline: yes
+      when: disk_number is defined
 
     - name: Create partition
       win_disk_image:
@@ -20,12 +21,14 @@
         offline: yes
         drive_letter: "{{ drive_letter }}"  # Specify the desired drive letter
         state: present
+      when: disk_number is defined and partition_size is defined and drive_letter is defined
 
     - name: Format partition
       win_format:
         drive_letter: "{{ drive_letter }}"  # Specify the drive letter
         fs_type: "{{ filesystem_type }}"  # Specify the filesystem type, e.g., NTFS
         confirm: yes
+      when: drive_letter is defined
 
     - name: Mount partition
       win_disk_image:
@@ -34,6 +37,7 @@
         mount_path: "{{ mount_path }}"  # Specify the mount path
         offline: yes
         state: present
+      when: disk_number is defined and drive_letter is defined
 
     - name: Move paging file to C:\ drive
       win_pagefile:
@@ -44,17 +48,19 @@
         disk_number: "{{ disk_number }}"  # Specify the disk number
         partition_number: 1  # Assuming it's the first partition on the disk
         drive_letter: "{{ new_drive_letter }}"  # Specify the new drive letter
-		
-     - name: Move paging file to temporary storage drive
+      when: disk_number is defined and new_drive_letter is defined
+
+    - name: Move paging file to temporary storage drive
       win_pagefile:
         drive: "{{ temporary_drive_letter }}"
-	
-     - name: Install SNMP Service
+      when: temporary_drive_letter is defined
+
+    - name: Install SNMP Service
       win_feature:
         name: SNMP-Service
         state: present
-		
-     - name: Configure Remote Desktop settings
+
+    - name: Configure Remote Desktop settings
       win_shell: |
         # Disable Remote Desktop
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 1 -Force
@@ -64,16 +70,15 @@
 
         # Allow connections only from computers running Remote Desktop with Network Level Authentication (NLA)
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1 -Force
-	
-     - name: Configure Windows Defender Firewall
+      when: enable_remote_desktop is defined and enable_remote_desktop
+
+    - name: Configure Windows Defender Firewall
       win_shell: |
         # Turn on Windows Defender Firewall for Domain, Public, and Private profiles
         Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled True
+      when: enable_firewall is defined and enable_firewall
 
-        # OR, to turn off Windows Defender Firewall for Domain, Public, and Private profiles
-        # Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False
-
-      - name: Configure Performance Settings
+    - name: Configure Performance Settings
       win_shell: |
         # Configure Processor Scheduling
         $processorScheduling = Get-WmiObject -Query "SELECT * FROM Win32_SystemDriver WHERE Name='Processor'" -Namespace "root\cimv2"
@@ -96,7 +101,7 @@
         $pagingFile.InitialSize = "{{ initial_pagefile_size }}"  # Initial size in MB
         $pagingFile.MaximumSize = "{{ maximum_pagefile_size }}"  # Maximum size in MB
         $pagingFile.Put()
-	
+      when: initial_pagefile_size is defined and maximum_pagefile_size is defined
 
     - name: Restart the system to apply changes
       win_reboot:
