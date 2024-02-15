@@ -7,24 +7,23 @@
   vars_files:
     - params2.yml
   tasks:
-    - name: Initialize and format disk in Windows
-  hosts: windows_hosts
-  gather_facts: no
-  tasks:
+    - name: Include parameters
+      include_vars: params.yml
+
     - name: Initialize disk
-      win_disk_partition:
+      community.windows.win_disk:
         disk_number: "{{ disk_number }}"
         partition_style: "{{ partition_style }}"
       register: disk_initialized
       changed_when: disk_initialized.changed
 
     - name: Get disk facts
-      win_disk_facts:
+      community.windows.win_disk_facts:
         disk_number: "{{ disk_number }}"
       register: disk_info
 
     - name: Create partition
-      win_partition:
+      community.windows.win_partition:
         disk_number: "{{ disk_number }}"
         size: "{{ disk_info.disks[disk_number].size | default('UseMaximumSize') }}"
       when: disk_initialized.changed
@@ -32,7 +31,7 @@
       changed_when: partition_created.changed
 
     - name: Format partition
-      win_format:
+      community.windows.win_format:
         disk: "{{ disk_number }}"
         partition: "{{ disk_info.partitions[0].partition_number }}"
         fs: "{{ filesystem }}"
@@ -41,13 +40,13 @@
       changed_when: false
 
     - name: Assign drive letter
-      win_disk_facts:
+      community.windows.win_disk_facts:
         disk_number: "{{ disk_number }}"
         include_partitions: yes
       register: disk_facts
 
     - name: Set drive letter
-      win_disk_facts:
+      community.windows.win_disk_facts:
         disk_number: "{{ disk_number }}"
         partition_number: "{{ disk_facts.partitions[0].partition_number }}"
         drive_letter: "{{ drive_letter }}"
