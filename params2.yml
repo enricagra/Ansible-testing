@@ -1,10 +1,27 @@
 # params2.yml
 disk_number: 0
-partition_size: 102400  # in MB
+partition_size: 10240 MB  # in MB
 drive_letter: "D"
-filesystem_type: "NTFS"
+filesystem_type: "ntfs"
 mount_path: "D:\\"
 new_drive_letter: "E"
 temporary_drive_letter: "F"
-initial_pagefile_size: 2048  # in MB
-maximum_pagefile_size: 4096  # in MB
+registry_processor: 'HKLM:\SYSTEM\CurrentControlSet\Control\PriorityControl'
+registry_name_processor: 'Win32PrioritySeparation'
+
+# '0x18' for background services and '0x26' for programs
+services_value: '0x26'
+registry_type_proc: dword
+
+# Pagefile
+enable_auto_manage: true  # Set to true to enable automatic management, false to disable
+drive_letter_page: "C:"
+initial_size_mb: "2048"
+maximum_size_mb: "4096"
+
+# Startup and Recovery Settings (System Startup)
+automaticRestartEnabled: true
+restartDelay: 30
+failureActions: "Restart"
+recoveryDisplayEnabled: true
+recoveryDisplayTime: 20
