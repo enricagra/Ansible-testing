@@ -7,22 +7,51 @@
   vars_files:
     - params2.yml
   tasks:
-    - name: Initialize a disk
-      community.windows.win_initialize_disk:
+    - name: Initialize and format disk in Windows
+  hosts: windows_hosts
+  gather_facts: no
+  tasks:
+    - name: Initialize disk
+      win_disk_partition:
         disk_number: "{{ disk_number }}"
+        partition_style: "{{ partition_style }}"
+      register: disk_initialized
+      changed_when: disk_initialized.changed
 
-    - name: Create a partition
-      community.windows.win_partition:
-        drive_letter: "{{ drive_letter }}"
-        partition_size: "{{ partition_size }}"
+    - name: Get disk facts
+      win_disk_facts:
         disk_number: "{{ disk_number }}"
+      register: disk_info
 
-    - name: Format Partition
-      community.windows.win_format:
+    - name: Create partition
+      win_partition:
+        disk_number: "{{ disk_number }}"
+        size: "{{ disk_info.disks[disk_number].size | default('UseMaximumSize') }}"
+      when: disk_initialized.changed
+      register: partition_created
+      changed_when: partition_created.changed
+
+    - name: Format partition
+      win_format:
+        disk: "{{ disk_number }}"
+        partition: "{{ disk_info.partitions[0].partition_number }}"
+        fs: "{{ filesystem }}"
+        label: "{{ volume_label }}"
+      when: partition_created.changed
+      changed_when: false
+
+    - name: Assign drive letter
+      win_disk_facts:
+        disk_number: "{{ disk_number }}"
+        include_partitions: yes
+      register: disk_facts
+
+    - name: Set drive letter
+      win_disk_facts:
+        disk_number: "{{ disk_number }}"
+        partition_number: "{{ disk_facts.partitions[0].partition_number }}"
         drive_letter: "{{ drive_letter }}"
-        file_system: "{{ filesystem_type }}"
-        new_label: DATA
-        full: True
+      when: partition_created.changed
 
     - name: Move paging file to C:\ drive
       win_pagefile:
