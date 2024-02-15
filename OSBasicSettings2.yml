@@ -56,6 +56,40 @@
         Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled True
       when: enable_firewall is defined and enable_firewall
 
+    - name: Set Processor Scheduling
+      win_regedit:
+        path: "{{ registry_processor }}"
+        name: "{{ registry_name_processor }}"
+        data: "{{ services_value }}"
+        type: "{{ registry_type_proc }}"
+        state: present
+
+    - name: Enable or Disable Pagefile
+      win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management
+        name: PagingFiles
+        data: "{{ 'Auto' if enable_auto_manage else drive_letter_page + ' ' + initial_size_mb + ' ' + maximum_size_mb }}"
+        type: string
+      when: enable_auto_manage != ('Auto' in pagingfiles_reg.data|default([]))
+
+    - name: Get current state of PagingFiles registry value
+      win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management
+        name: PagingFiles
+      register: pagingfiles_reg
+
+    - name: Set Timeout for Boot Menu
+      win_command: bcdedit /timeout 10
+
+    - name: Configure Automatic Restart upon System Failure
+      win_command: bcdedit /set {default} bootstatuspolicy ignoreallfailures
+
+    - name: Enable Writing of Event Logs upon System Failure
+      win_command: bcdedit /set {default} recoveryenabled yes
+
+    - name: Verify Changes
+      win_command: bcdedit
+
     - name: Restart the system to apply changes
       win_reboot:
         reboot_timeout: 300
