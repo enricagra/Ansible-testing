@@ -1,12 +1,13 @@
 # params2.yml
-disk_number: 1  # Replace with the disk number you want to initialize
-partition_style: GPT  # Replace with either MBR or GPT
-filesystem: NTFS  # Replace with the desired filesystem
-volume_label: DATA  # Replace with the desired volume label
-drive_letter: D  # Replace with the desired drive letter
-mount_path: "D:\\"
+disk_number: 2
+partition_size: 10240 MB  # in MB
+drive_letter: "F"
+filesystem_type: "ntfs"
+mount_path: "F:\\"
 new_drive_letter: "E"
 temporary_drive_letter: "F"
+initial_pagefile_size: 2048  # in MB
+maximum_pagefile_size: 4096  # in MB
 registry_processor: 'HKLM:\SYSTEM\CurrentControlSet\Control\PriorityControl'
 registry_name_processor: 'Win32PrioritySeparation'
 
