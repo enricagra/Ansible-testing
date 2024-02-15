@@ -1,8 +1,9 @@
 # params2.yml
-disk_number: 0
-partition_size: 10240 MB  # in MB
-drive_letter: "D"
-filesystem_type: "ntfs"
+disk_number: 1  # Replace with the disk number you want to initialize
+partition_style: GPT  # Replace with either MBR or GPT
+filesystem: NTFS  # Replace with the desired filesystem
+volume_label: MyVolume  # Replace with the desired volume label
+drive_letter: D  # Replace with the desired drive letter
 mount_path: "D:\\"
 new_drive_letter: "E"
 temporary_drive_letter: "F"
