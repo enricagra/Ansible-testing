@@ -1,13 +1,12 @@
 # params2.yml
-disk_number: 2
+disk_number: 0
 partition_size: 10240 MB  # in MB
-drive_letter: "F"
+drive_letter: "D"
 filesystem_type: "ntfs"
-mount_path: "F:\\"
+mount_path: "D:\\"
+partition_label: "DATA"
 new_drive_letter: "E"
 temporary_drive_letter: "F"
-initial_pagefile_size: 2048  # in MB
-maximum_pagefile_size: 4096  # in MB
 registry_processor: 'HKLM:\SYSTEM\CurrentControlSet\Control\PriorityControl'
 registry_name_processor: 'Win32PrioritySeparation'
 
@@ -27,3 +26,145 @@ restartDelay: 30
 failureActions: "Restart"
 recoveryDisplayEnabled: true
 recoveryDisplayTime: 20
+
+# dump file settings
+dump_file_settings:
+  - name: "DumpFile"
+    data: "%SystemRoot%\\MEMORY.DMP"
+    type: "ExpandString"
+  - name: "AutoDelete"
+    data: 0
+    type: "DWORD"
+
+# ntp_settings.yml
+ntp_parameters:
+  # AnnounceFlags: Specifies whether the computer will operate as a time server that sends periodic time announcements to its clients.
+  - name: AnnounceFlags
+    value: 5
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\W32Time\Parameters
+
+  # LocalClockDispersion: Specifies the dispersion in milliseconds that the Windows Time service can tolerate for the local clock.
+  - name: LocalClockDispersion
+    value: 10
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\W32Time\Parameters
+
+  # SpecialPollInterval: Specifies the maximum interval in seconds that the Windows Time service uses for polling.
+  - name: SpecialPollInterval
+    value: 10
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\W32Time\TimeProviders\NtpClient
+
+  # MinPollInterval: Specifies the minimum interval in seconds that the Windows Time service uses for polling.
+  - name: MinPollInterval
+    value: 6
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\W32Time\TimeProviders\NtpClient
+
+  # AnnounceFlags_Global: Specifies whether the computer will operate as a time server that sends periodic time announcements to its clients globally.
+  - name: AnnounceFlags_Global
+    value: 5
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\W32Time\Config
+
+  # LocalClockDispersion_Global: Specifies the dispersion in milliseconds that the Windows Time service can tolerate for the local clock globally.
+  - name: LocalClockDispersion_Global
+    value: 10
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\W32Time\Config
+
+  # MaxNegPhaseCorrection_Global: Specifies the maximum negative time correction in seconds that the Windows Time service can apply globally.
+  - name: MaxNegPhaseCorrection_Global
+    value: 172800
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\W32Time\Config
+
+  # MaxPosPhaseCorrection_Global: Specifies the maximum positive time correction in seconds that the Windows Time service can apply globally.
+  - name: MaxPosPhaseCorrection_Global
+    value: 172800
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\W32Time\Config
+
+  # NtpServer: Specifies the NTP server(s) to use for time synchronization.
+  - name: NtpServer
+    value: "time.windows.com,0x9"
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\W32Time\Parameters
+    data_type: string
+
+  - name: SpecialPollInterval
+    value: 10
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\W32Time\TimeProviders\NtpClient
+    type: dword
+  - data_type: string  # Renamed the key from 'type' to 'data_type'
+    name: Type
+    value: "NT5DS"
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\W32Time\Parameters
+
+#ntp client and server settings
+ntp_client_enabled: true
+ntp_server_enabled: false
+
+# windows_time_service_config.yml
+
+# Configuration variables for the Windows Time service
+windows_time_service:
+  # The name of the Windows Time service (w32time is the correct service name)
+  service_name: w32time
+
+  # The display name of the Windows Time service (how it appears in the Services console)
+  service_display_name: Windows Time
+
+  # The startup type of the Windows Time service (e.g., auto, manual, disabled)
+  startup_type: auto
+
+# IPv6 registry settings
+
+# Define the registry path where IPv6 settings are stored
+ipv6_registry_path: "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip6\\Parameters"
+
+# Define the name of the registry entry for disabling IPv6
+ipv6_registry_name: "DisabledComponents"
+
+# Define the type of the registry entry as REG_DWORD, which represents a 32-bit DWORD value
+ipv6_registry_type: "dword"  # DWORD
+
+# Set to false to disable IPv6, set to true to enable IPv6
+ipv6_enable: false  # Change this to true to enable IPv6
+
+# registry_params.yml
+registry_settings:
+  - registry_path: "HKCU:\\Software\\MyApp"
+    registry_name: "Setting1"
+    value_data: 12345
+    value_type: "dword"
+    state: "present"
+  - registry_path: "HKCU:\\Software\\MyApp"
+    registry_name: "Setting2"
+    value_data: "SomeValue"
+    value_type: "string"
+    state: "present"
+  - registry_path: "HKCU:\\Software\\MyApp"
+    registry_name: "Setting3"
+    value_data: 7680
+    value_type: "string"
+    state: "present"
+  - registry_path: "HKCU:\\Software\\MyApp"
+    registry_name: "jeric1"
+    value_data: "jeric-test"
+    value_type: "string"
+    state: "present"
+  - registry_path: "HKCU:\\Software\\MyApp"
+    registry_name: "Setting5"
+    value_data: "NewValue"
+    value_type: "string"
+    state: "present"
+
+# folder creation settings
+
+folder_name: C:\jeric-test
+
+# file explorer settings
+
+file_name_extensions: 0
+show_hidden_items: 1
+
+# event log settings
+
+application_log_path: C:\Logs\Application.evtx
+security_log_path: C:\Logs\Security.evtx
+setup_log_path: C:\Logs\Setup.evtx
+system_log_path: C:\Logs\System.evtx
+forwarded_events_log_path: C:\Logs\ForwardedEvents.evtx
