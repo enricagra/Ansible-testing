@@ -21,8 +21,9 @@
       community.windows.win_format:
         drive_letter: "{{ drive_letter }}"
         file_system: "{{ filesystem_type }}"
-        new_label: DATA
+        new_label: "{{ partition_label }}"
         full: True
+
     - name: Move paging file to C:\ drive
       win_pagefile:
         drive: "C:"  # Move paging file to C:\ drive
@@ -47,13 +48,13 @@
 
         # Allow connections only from computers running Remote Desktop with Network Level Authentication (NLA)
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1 -Force
-      when: enable_remote_desktop is defined and enable_remote_desktop
+
 
     - name: Configure Windows Defender Firewall
       win_shell: |
         # Turn on Windows Defender Firewall for Domain, Public, and Private profiles
         Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled True
-      when: enable_firewall is defined and enable_firewall
+
 
     - name: Set Processor Scheduling
       win_regedit:
@@ -86,10 +87,185 @@
     - name: Enable Writing of Event Logs upon System Failure
       win_command: bcdedit /set {default} recoveryenabled yes
 
+    - name: Set Windows dump file settings
+      win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\CrashControl
+        name: "{{ item.name }}"
+        data: "{{ item.data }}"
+        type: "{{ item.type }}"
+        state: present
+      with_items: "{{ dump_file_settings }}"
+      register: reg_result
+
     - name: Verify Changes
       win_command: bcdedit
 
-    - name: Restart the system to apply changes
+    - name: Set Windows Time Service parameters
+      win_regedit:
+        path: "{{ item.path }}"
+        name: "{{ item.name }}"
+        data: "{{ item.value }}"
+        type: "{{ item.data_type | default('dword') }}"  # Use 'data_type' if available, default to 'dword' if not specified
+        state: present
+      loop: "{{ ntp_parameters }}"
+      when: item.name != 'RestartService'  # Skip RestartService parameter
+
+    - name: Set NTP client configuration
+      win_shell: w32tm /config /syncfromflags:manual /manualpeerlist:"pool.ntp.org" /reliable:yes /update
+      become: yes
+      become_user: Administrator
+      when: ntp_client_enabled | default(false)
+
+    - name: Reset NTP client configuration
+      win_shell: w32tm /config /syncfromflags:domhier /reliable:no /update
+      become: yes
+      become_user: Administrator
+      when: not ntp_client_enabled | default(false)
+
+    - name: Enable NTP server
+      win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\W32Time\TimeProviders\NtpServer
+        name: Enabled
+        data: 1
+        type: dword
+        state: present
+      become: yes
+      become_user: Administrator
+      when: ntp_server_enabled | default(false)
+
+    - name: Disable NTP server
+      win_regedit:
+        path: HKLM:\SYSTEM\CurrentControlSet\Services\W32Time\TimeProviders\NtpServer
+        name: Enabled
+        data: 0
+        type: dword
+        state: present
+      become: yes
+      become_user: Administrator
+      when: not ntp_server_enabled | default(false)
+
+    - name: Restart Windows Time service
+      win_service:
+        name: w32time
+        state: restarted
+      become: yes
+      become_user: Administrator
+      when: ntp_client_enabled | default(false) or ntp_server_enabled | default(false)
+
+    - name: Set Windows Time service startup type to {{ windows_time_service.startup_type }}
+      win_service:
+        name: "{{ windows_time_service.service_name }}"
+        start_mode: "{{ windows_time_service.startup_type }}"
+      register: service_result
+
+    - name: Start Windows Time service
+      win_service:
+        name: "{{ windows_time_service.service_name }}"
+        state: started
+      when: service_result.changed
+
+    - name: Check if IPv6 is enabled or disabled
+      win_reg_stat:
+        path: "{{ ipv6_registry_path }}"
+        name: "{{ ipv6_registry_name }}"
+      register: ipv6_disabled
+
+    - name: Enable or Disable IPv6 based on condition
+      win_regedit:
+        path: "{{ ipv6_registry_path }}"
+        name: "{{ ipv6_registry_name }}"
+        data: "{{ '0xffffffff' if ipv6_disabled.exists else '0' }}"
+        type: "{{ ipv6_registry_type }}"
+        state: present
+
+    - name: Add registry settings
+      win_regedit:
+        path: "{{ item.registry_path }}"
+        name: "{{ item.registry_name }}"
+        data: "{{ item.value_data }}"
+        type: "{{ item.value_type }}"
+        state: "{{ item.state }}"
+      loop: "{{ registry_settings }}"
+      register: reg_results
+
+    - name: Debug registry results
+      debug:
+        var: reg_results
+
+    - name: folder creation
+      ansible.windows.win_file:
+        path: "{{ folder_name }}"
+        state: directory
+      register: creation_results
+
+    - name: Debug folder creation results
+      debug:
+        var: creation_results
+
+    - name: Show file name extensions
+      win_regedit:
+        path: HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced
+        name: HideFileExt
+        data: "{{ file_name_extensions }}"
+        type: dword
+      register: hide_file_ext_result
+
+    - name: Show hidden items
+      win_regedit:
+        path: HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced
+        name: Hidden
+        data: "{{ show_hidden_items }}"
+        type: dword
+      register: show_hidden_items_result
+
+    - name: Get events from the Application log
+      win_eventlog:
+        log: Application
+      register: application_events
+
+    - name: Display Application events
+      debug:
+        var: application_events.events
+
+    - name: Get events from the System log
+      win_eventlog:
+        log: System
+      register: system_events
+
+    - name: Display System events
+      debug:
+        var: system_events.events
+
+    - name: Filter events to show only errors from the System log
+      win_eventlog:
+        log: System
+      register: system_events_filtered
+
+    - name: Display filtered System events
+      debug:
+        var: system_events_filtered.events | selectattr("Level", "equalto", "Error") | list
+
+    - name: Create a custom view to show only errors and warnings from the Security log
+      win_eventlog:
+        log: Security
+      register: security_events
+
+    - name: Display custom view for Security events
+      debug:
+        var: security_events.events | selectattr("Level", "in", ["Error", "Warning"]) | list
+
+    - name: Clear all events from the Application log
+      win_eventlog:
+        log: Application
+        clear: yes
+
+    - name: Clear all events from all logs
+      win_eventlog:
+        log: '*'
+        clear: yes
+
+    - name: Reboot the system to apply changes
       win_reboot:
-        reboot_timeout: 300
-        msg: "Rebooting to apply changes"
+      async: 0
+      poll: 0
+      register: reboot_result
