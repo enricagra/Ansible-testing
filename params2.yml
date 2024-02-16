@@ -1,9 +1,9 @@
 # params2.yml
-disk_number: 0
-partition_size: 10240 MB  # in MB
-drive_letter: "D"
+disk_number: 2
+partition_size: 32768 MB  # in MB
+drive_letter: "F"
 filesystem_type: "ntfs"
-mount_path: "D:\\"
+mount_path: "F:\\"
 partition_label: "DATA"
 new_drive_letter: "E"
 temporary_drive_letter: "F"
@@ -37,6 +37,7 @@ dump_file_settings:
     type: "DWORD"
 
 # ntp_settings.yml
+ntp_user: test-456
 ntp_parameters:
   # AnnounceFlags: Specifies whether the computer will operate as a time server that sends periodic time announcements to its clients.
   - name: AnnounceFlags
@@ -154,7 +155,7 @@ registry_settings:
 
 # folder creation settings
 
-folder_name: C:\jeric-test
+folder_name: C:\jeric-test2
 
 # file explorer settings
 
@@ -163,8 +164,29 @@ show_hidden_items: 1
 
 # event log settings
 
-application_log_path: C:\Logs\Application.evtx
-security_log_path: C:\Logs\Security.evtx
-setup_log_path: C:\Logs\Setup.evtx
-system_log_path: C:\Logs\System.evtx
-forwarded_events_log_path: C:\Logs\ForwardedEvents.evtx
+# event_log_parameters.yml
+
+custom_log_file_path: "%SystemRoot%\\System32\\Winevt\\Logs\\Application.evtx"
+maximum_log_size_bytes: 10485760  # 10 MB in bytes
+retention_policy: 0  # Overwrite events when maximum size is reached
+auto_backup_log_files: 0  # Disable automatic log file backup when full
+
+custom_security_log_file_path: "%SystemRoot%\\System32\\Winevt\\Logs\\Security.evtx"
+maximum_security_log_size_bytes: 2097152  # Example size: 2 MB
+security_retention_policy: 1  # Example policy: Archive logs
+security_auto_backup_log_files: 1  # Example: Enabled
+
+custom_setup_log_file_path: "%SystemRoot%\\System32\\Winevt\\Logs\\Setup.evtx"
+maximum_setup_log_size_bytes: 3145728  # Example size: 3 MB
+setup_retention_policy: 2  # Example policy: Do not overwrite events
+setup_auto_backup_log_files: 0  # Example: Disabled
+
+custom_system_log_file_path: "%SystemRoot%\\System32\\Winevt\\Logs\\System.evtx"
+maximum_system_log_size_bytes: 5242880  # Example size: 5 MB
+system_retention_policy: 0  # Example policy: Overwrite events
+system_auto_backup_log_files: 0  # Example: Disabled
+
+custom_forwarded_events_log_file_path: "%SystemRoot%\\System32\\Winevt\\Logs\\ForwardedEvents.evtx"
+maximum_forwarded_events_log_size_bytes: 5242880  # Example size: 5 MB
+forwarded_events_retention_policy: 1  # Example policy: Archive logs
+forwarded_events_auto_backup_log_files: 0  # Example: Disabled
