@@ -218,51 +218,149 @@
         type: dword
       register: show_hidden_items_result
 
-    - name: Get events from the Application log
-      win_eventlog:
-        log: Application
-      register: application_events
+    - name: Set custom log file path
+      win_regedit:
+        path: "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application"
+        name: "File"
+        data: "{{ custom_log_file_path }}"
+        type: string
+        state: present
 
-    - name: Display Application events
-      debug:
-        var: application_events.events
+    - name: Set maximum log size (in bytes)
+      win_regedit:
+        path: "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application"
+        name: "MaxSize"
+        data: "{{ maximum_log_size_bytes }}"
+        type: dword
+        state: present
 
-    - name: Get events from the System log
-      win_eventlog:
-        log: System
-      register: system_events
+    - name: Set retention policy to overwrite events when maximum log size is reached
+      win_regedit:
+        path: "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application"
+        name: "Retention"
+        data: "{{ retention_policy }}"
+        type: dword
+        state: present
 
-    - name: Display System events
-      debug:
-        var: system_events.events
+    - name: Disable automatic log file backup when full
+      win_regedit:
+        path: "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application"
+        name: "AutoBackupLogFiles"
+        data: "{{ auto_backup_log_files }}"
+        type: dword
+        state: present
 
-    - name: Filter events to show only errors from the System log
-      win_eventlog:
-        log: System
-      register: system_events_filtered
+    - name: Configure Security event log
+      win_regedit:
+        path: "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\EventLog\\Security"
+        name: "File"
+        data: "{{ custom_security_log_file_path }}"
+        type: string
+        state: present
 
-    - name: Display filtered System events
-      debug:
-        var: system_events_filtered.events | selectattr("Level", "equalto", "Error") | list
+    - name: Set maximum log size (in bytes) for Application event log
+      win_regedit:
+        path: "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application"
+        name: "MaxSize"
+        data: "{{ maximum_log_size_bytes }}"
+        type: dword
+        state: present
 
-    - name: Create a custom view to show only errors and warnings from the Security log
-      win_eventlog:
-        log: Security
-      register: security_events
+    - name: Set maximum log size (in bytes) for Security event log
+      win_regedit:
+        path: "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\EventLog\\Security"
+        name: "MaxSize"
+        data: "{{ maximum_security_log_size_bytes }}"
+        type: dword
+        state: present
 
-    - name: Display custom view for Security events
-      debug:
-        var: security_events.events | selectattr("Level", "in", ["Error", "Warning"]) | list
+    - name: Configure Application event log
+      win_regedit:
+        path: "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application"
+        name: "File"
+        data: "{{ custom_log_file_path }}"
+        type: string
+        state: present
 
-    - name: Clear all events from the Application log
-      win_eventlog:
-        log: Application
-        clear: yes
+    - name: Configure Security event log
+      win_regedit:
+        path: "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\EventLog\\Security"
+        name: "File"
+        data: "{{ custom_security_log_file_path }}"
+        type: string
+        state: present
 
-    - name: Clear all events from all logs
-      win_eventlog:
-        log: '*'
-        clear: yes
+    - name: Configure Setup event log
+      win_regedit:
+        path: "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\EventLog\\Setup"
+        name: "File"
+        data: "{{ custom_setup_log_file_path }}"
+        type: string
+        state: present
+
+    - name: Set custom log file path for System event log
+      win_regedit:
+        path: "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\EventLog\\System"
+        name: "File"
+        data: "{{ custom_system_log_file_path }}"
+        type: string
+        state: present
+
+    - name: Set maximum log size (in bytes) for System event log
+      win_regedit:
+        path: "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\EventLog\\System"
+        name: "MaxSize"
+        data: "{{ maximum_system_log_size_bytes }}"
+        type: dword
+        state: present
+
+    - name: Set retention policy to overwrite events when maximum log size is reached for System event log
+      win_regedit:
+        path: "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\EventLog\\System"
+        name: "Retention"
+        data: "{{ system_retention_policy }}"
+        type: dword
+        state: present
+
+    - name: Disable automatic log file backup when full for System event log
+      win_regedit:
+        path: "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\EventLog\\System"
+        name: "AutoBackupLogFiles"
+        data: "{{ system_auto_backup_log_files }}"
+        type: dword
+        state: present
+
+    - name: Set custom log file path for Forwarded Events log
+      win_regedit:
+        path: "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\EventLog\\ForwardedEvents"
+        name: "File"
+        data: "{{ custom_forwarded_events_log_file_path }}"
+        type: string
+        state: present
+
+    - name: Set maximum log size (in bytes) for Forwarded Events log
+      win_regedit:
+        path: "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\EventLog\\ForwardedEvents"
+        name: "MaxSize"
+        data: "{{ maximum_forwarded_events_log_size_bytes }}"
+        type: dword
+        state: present
+
+    - name: Set retention policy to overwrite events when maximum log size is reached for Forwarded Events log
+      win_regedit:
+        path: "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\EventLog\\ForwardedEvents"
+        name: "Retention"
+        data: "{{ forwarded_events_retention_policy }}"
+        type: dword
+        state: present
+
+    - name: Disable automatic log file backup when full for Forwarded Events log
+      win_regedit:
+        path: "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\EventLog\\ForwardedEvents"
+        name: "AutoBackupLogFiles"
+        data: "{{ forwarded_events_auto_backup_log_files }}"
+        type: dword
+        state: present
 
     - name: Reboot the system to apply changes
       win_reboot:
