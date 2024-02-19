@@ -1,0 +1,270 @@
+# OSBasicSettings.yml
+---
+- hosts: win
+  collections:
+    - ansible.windows
+  gather_facts: no
+  vars_files:
+    - params.yml
+  tasks:
+#Computer Name & Domain/Workgroup Settings
+- name: Set Computer Name
+     win_shell: |
+        $ComputerInfo = Get-WmiObject Win32_ComputerSystem
+        $ComputerInfo.Rename("{{ computer_name }}")
+		
+- name: Set Workgroup Name
+     win_domain_membership:
+        workgroup: "{{ workgroup_name }}"
+        state: workgroup
+     when: "not domain_status.stdout and not workgroup_status.stdout"
+     register: reboot_result
+	 
+- name: Set Domain Name
+     win_domain_membership:
+       hostname: "{{ computer_name }}"
+       domain_name: "{{ domain_name }}"
+       username: "{{ domain_admin_username }}"
+       password: "{{ domain_admin_password }}"
+       state: domain
+     when: "not domain_status.stdout"
+     register: reboot_result
+
+#DNS Suffix Settings
+- name: Set Primary DNS Suffix
+     win_shell: |
+       Set-DnsClientGlobalSetting -SuffixSearchList "{{ primary_dns_suffix }}"
+     register: dns_suffix_result
+	 
+- name: Set change primary DNS Suffix when domain membership changes XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX MISSING SCRIPT XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+#Windows Update (Group policy)
+- name: Set Configure Automatic Updates XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX MISSING SCRIPT XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+	- name: Set install during automatic maintenance XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX MISSING SCRIPT XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	
+	- name: Set scheduled install day XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX MISSING SCRIPT XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	
+	- name: Set scheduled install time XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX MISSING SCRIPT XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	
+	- name: Set scheduled install week XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX MISSING SCRIPT XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	
+	- name: Set install updates for other Microsoft products XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX MISSING SCRIPT XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	
+- name: Set turn on recommended updates via Automatic Updates XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX MISSING SCRIPT XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+#Windows Update (Advanced options)
+- name: Set received updates for other Microsoft products when you update windows
+     win_regedit:
+       key: "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WindowsUpdate\\Auto Update"
+       name: "AUOptions"
+       data: "3"
+       type: dword
+	   
+	- name: Set download updates using metered connections
+     win_regedit:
+       key: "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\DeliveryOptimization\\Config"
+       name: "DODownloadMode"
+       data: "0"
+       type: dword
+	   
+	- name: Set restart this device as soon as possible	XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX MISSING SCRIPT XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	
+	- name: Set update Notifications
+     win_regedit:
+       key: "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WindowsUpdate\\UX\\Settings"
+       name: "UxOption"
+       data: "2"
+       type: dword
+	
+	- name: Set pause updates
+     win_regedit:
+       key: "HKLM:\\SOFTWARE\\Microsoft\\WindowsUpdate\\UX\\Settings"
+       name: "PauOptions"
+       data: "2"
+       type: dword
+	
+#Windows Security (Setting Administration)
+- name: Set real time protection
+     win_regedit:
+       key: "HKLM:\\SOFTWARE\\Microsoft\\Windows Defender\\Real-Time Protection"
+       name: "DisableRealtimeMonitoring"
+       data: "0"
+       type: dword
+     when: "not domain_status.stdout and not workgroup_status.stdout"
+	 
+- name: Set cloud-delivered protection
+     win_regedit:
+       key: "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows Defender\\SpyNet"
+       name: "SpynetReporting"
+       data: "1"
+       type: dword
+	   
+- name: Set Automatic sample submission
+    - name: Configure Automatic Sample Submission
+     win_regedit:
+       key: "HKLM:\\SOFTWARE\\Microsoft\\Windows Defender\\Spynet"
+       name: "SubmitSamplesConsent"
+       data: "1"
+       type: dword
+     when: "not domain_status.stdout and not workgroup_status.stdout"
+	  
+- name: Set tamper protection XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX MISSING SCRIPT XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+- name: Set controlled folder access
+     win_regedit:
+       key: "HKLM:\\SOFTWARE\\Microsoft\\Windows Defender\\Exploit Guard\\Controlled Folder Access"
+       name: "EnableControlledFolderAccess"
+       data: "1"
+       type: dword
+     when: "not domain_status.stdout and not workgroup_status.stdout"
+
+- name: Set add exclusions XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX MISSING SCRIPT XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+	- name: Insert file or folder XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX MISSING SCRIPT XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	
+	- name: Insert file type XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX MISSING SCRIPT XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	
+	- name: Insert process XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX MISSING SCRIPT XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+#Windows Security (Reputation-based protection settings)
+- name: Set check apps and files XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX MISSING SCRIPT XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+- name: Set potentially unwanted app blocking XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX MISSING SCRIPT XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+	- name: Set block apps XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX MISSING SCRIPT XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	
+	- name: Set block downloads XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX MISSING SCRIPT XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	
+#Windows Security (Exploit protection settings)
+- name: Set control flow guard (CFG) XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX MISSING SCRIPT XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+- name: Set data execution prevention (DEP) XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX MISSING SCRIPT XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+- name: Set force randomization for mages (Mandatory ASLR) XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX MISSING SCRIPT XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+- name: Set randomize memory allocations (Bottom-up ASLR) XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX MISSING SCRIPT XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+- name: Set high-entropy ASLR XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX MISSING SCRIPT XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+- name: Set validate exception chains (SEHOP) XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX MISSING SCRIPT XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+- name: Set validate heap integrity XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX MISSING SCRIPT XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+#Windows Security (Core Isolation Details)
+- name: Set memory integrity
+     win_regedit:
+       key: "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer"
+       name: "DeviceGuard\\EnableVirtualizationBasedSecurity"
+       data: "1"
+       type: dword
+
+#Diagnostics & feedback
+- name: Set optional diagnostics data
+     win_regedit:
+       key: "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Diagnostic\\"
+       name: "AllowTelemetry"
+       data: "1"
+       type: dword
+	   
+- name: Set improve inking and typing
+     win_regedit:
+       key: "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\PenWorkspace"
+       name: "PenWorkspace\\PenFeedbackEnabled"
+       data: "1"
+       type: dword
+	   
+- name: Set tailored experience XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX MISSING SCRIPT XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+- name: Set view diagnostic data
+     win_regedit:
+       key: "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Privacy"
+       name: "DeviceName\\PublishUserActivities"
+       data: "1"
+       type: dword
+		
+- name: Feedback frequency
+     win_regedit:
+       key: "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Feedback"
+       name: "Feedback\\FeedbackFrequency"
+       data: "1"
+       type: dword
+
+#Internet Explorer Enhanced Security Configuration
+- name: Set Internet Explorer Enhanced Security Configuration
+     win_regedit:
+       key: "HKLM:\\SOFTWARE\\Microsoft\\Active Setup\\Installed Components\\{A509B1A7-37EF-4b3f-8CFC-4F3A74704073}"
+       name: "IsInstalled"
+       data: "0"
+       type: dword
+	   
+- name: Set Internet Explorer Enhanced Security Configuration for Administrators
+     win_regedit:
+      key: "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\ZoneMap"
+      name: "IEHardenAdmin"
+      data: "1"
+      type: dword
+	  
+- name: Set Internet Explorer Enhanced Security Configuration for Users
+      win_regedit:
+       key: "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Internet Settings\\ZoneMap"
+       name: "IEHarden"
+       data: "1"
+       type: dword
+
+#Configure Remote Management
+- name: Set remote management XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX MISSING SCRIPT XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+#Server Manager properties
+- name: Set Do not start Server Manager automatically at logon
+     win_regedit:
+       key: "HKLM:\\SOFTWARE\\Microsoft\\ServerManager"
+       name: "DoNotOpenServerManagerAtLogon"
+       data: "1"
+       type: dword
+
+#User Information
+- name: Set Username XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX MISSING SCRIPT XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+- name: Set Organization XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX MISSING SCRIPT XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+#Power Options
+- name: Set power plan
+     win_shell: |
+       powercfg -setactive SCHEME_BALANCED
+	   
+	- name: Set turn off the display
+		 win_shell: |
+           powercfg -change -monitor-timeout-ac 15
+           powercfg -change -monitor-timeout-dc 10
+		   
+	- name: Set put the computer to sleep
+		 win_shell: |
+           powercfg -change -standby-timeout-ac 30
+           powercfg -change -standby-timeout-dc 20
+		
+#Windows User
+- name: Set Windows User Account
+  ansible.windows.win_user:
+    name: "{{ user_name }}"
+    fullname: "{{ full_name }}"
+    description: "{{ user_description }}"
+    password: "{{ user_password }}"
+    state: present
+    password_expired: no
+    password_never_expires: yes
+    groups: "{{ new_group_name }}"
+
+#Windows Group
+- name: Set Windows Group Account
+  ansible.windows.win_group:
+    name: "{{ new_group_name }}"
+    description: "{{ group_description }}"
+    state: present
+
+#Reboot the Machine
+- name: Reboot the machine
+      win_reboot:
+      async: 0
+      poll: 0
+      register: reboot_result
