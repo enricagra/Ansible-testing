@@ -28,17 +28,12 @@ partition_number: 0
 data_disk_number: 0
 data_drive_letter: "D"  # Replace with the correct data disk number
 data_folder_path: "D:\\data"
-ComputerConfiguration:
-  Policies:
-    WindowsUpdate:
-      AUOptions: 4  # Configure automatic updates
-      ScheduledInstallDay: 1  # Scheduled install day (0 - 7, where 0 is every day)
-      ScheduledInstallTime: "03:00"  # Scheduled install time
-      ScheduledInstallWeek: 0  # Scheduled install week (0 - 4, where 0 is every week)
-      NoAutoRebootWithLoggedOnUsers: 1  # No auto-reboot when users are logged on
-      IncludeRecommendedUpdates: 1  # Include recommended updates
-      AutoInstallMinorUpdates: 1  # Install updates for other Microsoft products
-      # Add more settings as needed
+---
+AutomaticUpdatesOption: 4
+ScheduledInstallDay: 0
+ScheduledInstallTime: "03:00"
+AcceptTrustedPublisherCerts: 1
+
 
 temp_drive_letter: "C:"  # Replace with the temporary drive letter for pagefile.sys
 remote_desktop_reg_file: "/path/to/remote_desktop_settings.reg"  # Replace with the path to your registry file
