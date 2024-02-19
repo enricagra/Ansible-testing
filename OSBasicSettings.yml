@@ -60,37 +60,45 @@
         type: dword
       when: dns_suffix_setting.exists | default(false) and dns_suffix_setting.value != enable_primary_dns_suffix
       
-    - name: Copy Group Policy YAML file
-      copy:
-        src: windows_update_settings.yml
-        dest: C:\temp\group_policy.yml
+   - name: Set automatic updates option
+      win_regedit:
+        path: HKLM:\Software\Policies\Microsoft\Windows\WindowsUpdate\AU
+        name: NoAutoUpdate
+        data: 0
+        type: dword
+        state: present
 
-    - name: Convert YAML to XML
-      ansible.builtin.command: >
-        python -c 'import yaml, sys, xml.etree.ElementTree as ET; \
-        tree = yaml.safe_load(sys.stdin.read()); \
-        root = ET.Element("ComputerConfiguration"); \
-        policies = ET.SubElement(root, "Policies"); \
-        win_update = ET.SubElement(policies, "WindowsUpdate"); \
-        for key, value in tree["ComputerConfiguration"]["Policies"]["WindowsUpdate"].items(): \
-            node = ET.SubElement(win_update, key); \
-            node.text = str(value); \
-        xml_data = ET.tostring(root).decode(); \
-        with open("C:\\temp\\group_policy.xml", "w") as f: \
-            f.write(xml_data)'
-      args:
-        stdin: "{{ lookup('file', 'C:\\temp\\group_policy.yml') }}"
+    - name: Set scheduled install day and time
+      win_regedit:
+        path: HKLM:\Software\Policies\Microsoft\Windows\WindowsUpdate\AU
+        name: ScheduledInstallDay
+        data: "{{ ScheduledInstallDay }}"
+        type: dword
+        state: present
 
-    - name: Import Group Policy settings
-      win_shell: |
-        Import-Module GroupPolicy
-        Import-GPO -Path C:\temp\group_policy.xml -BackupGpoName "BackupBeforeWindowsUpdate"
-        Invoke-GPUpdate
+    - name: Set scheduled install time
+      win_regedit:
+        path: HKLM:\Software\Policies\Microsoft\Windows\WindowsUpdate\AU
+        name: ScheduledInstallTime
+        data: "{{ ScheduledInstallTime }}"
+        type: string
+        state: present
 
-    - name: Remove temporary Group Policy file
-      win_file:
-        path: C:\temp\group_policy.xml
-        state: absent 
+    - name: Install updates for other Microsoft products
+      win_regedit:
+        path: HKLM:\Software\Policies\Microsoft\Windows\WindowsUpdate
+        name: AcceptTrustedPublisherCerts
+        data: "{{ AcceptTrustedPublisherCerts }}"
+        type: dword
+        state: present
+
+    - name: Install during automatic maintenance
+      win_regedit:
+        path: HKLM:\Software\Policies\Microsoft\Windows\WindowsUpdate\AU
+        name: AlwaysAutoRebootAtScheduledTime
+        data: 1
+        type: dword
+        state: present 
 
     - name: Configure Windows Update Settings (Advanced Options)
       win_regedit:
