@@ -62,11 +62,11 @@
       
    - name: Set automatic updates option
      win_regedit:
-        path: HKLM:\Software\Policies\Microsoft\Windows\WindowsUpdate\AU
-        name: NoAutoUpdate
-        data: 0
-        type: dword
-        state: present
+       path: HKLM:\Software\Policies\Microsoft\Windows\WindowsUpdate\AU
+       name: NoAutoUpdate
+       data: 0
+       type: dword
+       state: present
 
     - name: Set scheduled install day and time
       win_regedit:
@@ -91,7 +91,7 @@
         data: "{{ AcceptTrustedPublisherCerts }}"
         type: dword
         state: present
-
+        
     - name: Install during automatic maintenance
       win_regedit:
         path: HKLM:\Software\Policies\Microsoft\Windows\WindowsUpdate\AU
