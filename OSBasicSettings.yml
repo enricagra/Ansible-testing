@@ -60,13 +60,13 @@
         type: dword
       when: dns_suffix_setting.exists | default(false) and dns_suffix_setting.value != enable_primary_dns_suffix
       
-   - name: Copy Group Policy YAML file
+    - name: Copy Group Policy YAML file
       copy:
         src: windows_update_settings.yml
         dest: C:\temp\group_policy.yml
 
     - name: Convert YAML to XML
-      ansible.builtin.command: |
+      ansible.builtin.command: >
         python -c 'import yaml, sys, xml.etree.ElementTree as ET; \
         tree = yaml.safe_load(sys.stdin.read()); \
         root = ET.Element("ComputerConfiguration"); \
