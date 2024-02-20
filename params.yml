@@ -28,12 +28,64 @@ partition_number: 0
 data_disk_number: 0
 data_drive_letter: "D"  # Replace with the correct data disk number
 data_folder_path: "D:\\data"
----
+
 AutomaticUpdatesOption: 4
 ScheduledInstallDay: 0
 ScheduledInstallTime: "03:00"
 AcceptTrustedPublisherCerts: 1
 
-
 temp_drive_letter: "C:"  # Replace with the temporary drive letter for pagefile.sys
 remote_desktop_reg_file: "/path/to/remote_desktop_settings.reg"  # Replace with the path to your registry file
+
+# Constants for data values
+# 1 for on or enabled and 0 for off or disabled
+zero_value: "0"
+one_value: "1"
+
+#power plan
+power_plan: SCHEME_BALANCED
+minutes_ac_timeout: 15
+minutes_dc_timeout: 10
+minutes_ac_sleep: 20
+minutes_dc_sleep: 30
+
+# exclusions
+
+files_to_exclude:
+  - "C:\\Program Files\\Example\\file1.exe"
+  - "C:\\Windows\\System32\\example.exe"
+
+folders_to_exclude:
+  - "C:\\ProgramData\\ExampleFolder"
+  - "C:\\Users\\User\\Documents\\AnotherFolder"
+
+processes_to_exclude:
+  - "example_process.exe"
+  - "another_process.exe"
+
+# check app files policy
+
+apps_files_policy: 1  # 2 for "Block", 1 for "ward", 0 for "Off"
+
+# Exploit Settings
+
+exploit_protections:
+      - DEPSEHOP
+      - DEP
+      - SEHOP
+      - NULLDEP
+      - ASLR
+      - DynamicCode
+      - StrictHandle
+
+registered_owner: "Test"
+registered_organization: "Test123"
+
+# Remote
+
+registry_path: "HKLM:\\System\\CurrentControlSet\\Control\\Terminal Server"
+registry_name: "fDenyTSConnections"
+registry_value: 0
+firewall_rule_name: "Remote Desktop"
+ps_remoting_command: "Enable-PSRemoting -Force"
+icmp_firewall_rule_name: "File and Printer Sharing (Echo Request - ICMPv4-In)"
