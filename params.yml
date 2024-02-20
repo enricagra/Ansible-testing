@@ -1,5 +1,6 @@
 # params.yml
 ---
+admin_user: test-765
 computer_name: jeric-testing2
 domain_netbios_name: jeric-testing2
 hostname: jeric-testing1
