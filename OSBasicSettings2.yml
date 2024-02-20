@@ -55,7 +55,27 @@
         # Turn on Windows Defender Firewall for Domain, Public, and Private profiles
         Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled True
 
+    - name: Enable firewall for Domain
+      community.windows.win_firewall:
+        state: "{{ firewall_domain }}"
+        profiles:
+        - Domain
+      tags: enable_firewall
+      
+    - name: Enable firewall for Private
+      community.windows.win_firewall:
+        state: "{{ firewall_private }}"
+        profiles:
+        - Private
+      tags: enable_firewall
 
+    - name: Enable firewall for Public
+      community.windows.win_firewall:
+        state: "{{ firewall_public }}"
+        profiles:
+        - Public
+      tags: enable_firewall
+    
     - name: Set Processor Scheduling
       win_regedit:
         path: "{{ registry_processor }}"
