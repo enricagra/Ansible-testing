@@ -33,6 +33,22 @@
         drive: "{{ temporary_drive_letter }}"
       when: temporary_drive_letter is defined
 
+    - name: Get current operating system identifier
+      win_shell: bcdedit /enum | findstr /C:"{current}"
+      register: current_os_identifier
+
+    - name: Enable Time to Display List of Operating Systems
+      win_shell: bcdedit /timeout 10
+      register: result_timeout
+      ignore_errors: yes
+      changed_when: result_timeout.rc == 0
+
+    - name: Enable Time to Display Recovery Options
+      win_shell: bcdedit /bootems true
+      register: result_recovery
+      ignore_errors: yes
+      changed_when: result_recovery.rc == 0
+      
     - name: Install SNMP Service
       win_feature:
         name: SNMP-Service
