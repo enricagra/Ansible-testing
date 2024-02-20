@@ -37,18 +37,24 @@
       win_shell: bcdedit /enum | findstr /C:"{current}"
       register: current_os_identifier
 
-    - name: Enable Time to Display List of Operating Systems
-      win_shell: bcdedit /timeout 10
+    - name: Enable or Disable Time to Display List of Operating Systems
+      win_shell: bcdedit /timeout {{ boot_timeout }}
       register: result_timeout
       ignore_errors: yes
       changed_when: result_timeout.rc == 0
+      vars:
+        boot_timeout: "{{ boot_timeout_value if enable_boot_timeout else '0' }}"
+      when: enable_boot_timeout_changed or not enable_boot_timeout
 
-    - name: Enable Time to Display Recovery Options
-      win_shell: bcdedit /bootems true
+    - name: Enable or Disable Time to Display Recovery Options
+      win_shell: bcdedit /bootems {{ boot_recovery_enabled }}
       register: result_recovery
       ignore_errors: yes
       changed_when: result_recovery.rc == 0
-      
+      vars:
+        boot_recovery_enabled: "{{ 'true' if enable_recovery_options else 'false' }}"
+      when: enable_recovery_options_changed or not enable_recovery_options
+  
     - name: Install SNMP Service
       win_feature:
         name: SNMP-Service
