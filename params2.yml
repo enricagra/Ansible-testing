@@ -20,6 +20,12 @@ drive_letter_page: "C:"
 initial_size_mb: "2048"
 maximum_size_mb: "4096"
 
+enable_boot_timeout: true
+enable_boot_timeout_changed: true
+enable_recovery_options: true
+enable_recovery_options_changed: true
+boot_timeout_value: 10
+
 # Startup and Recovery Settings (System Startup)
 automaticRestartEnabled: true
 restartDelay: 30
