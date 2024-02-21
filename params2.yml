@@ -1,4 +1,5 @@
 # params2.yml
+admin_user: test-456
 disk_number: 2
 partition_size: 32768 MB  # in MB
 drive_letter: "F"
@@ -26,12 +27,27 @@ enable_recovery_options: true
 enable_recovery_options_changed: true
 boot_timeout_value: 10
 
+#firewall settings
+firewall_domain_state: enabled
+firewall_private_state: enabled
+firewall_public_state: disabled
+
 # Startup and Recovery Settings (System Startup)
 automaticRestartEnabled: true
 restartDelay: 30
 failureActions: "Restart"
 recoveryDisplayEnabled: true
 recoveryDisplayTime: 20
+
+system_failure_settings:
+  - name: AutoReboot
+    data: 1
+  - name: CrashDumpEnabled
+    data: 1
+  - name: CrashDumpOverwrite
+    data: 1
+  - name: LogEvent
+    data: 1
 
 # dump file settings
 dump_file_settings:
@@ -42,8 +58,11 @@ dump_file_settings:
     data: 0
     type: "DWORD"
 
+automatic_deletion_settings:
+  name: StateFlags0019
+  data: 0
+
 # ntp_settings.yml
-ntp_user: test-456
 ntp_parameters:
   # AnnounceFlags: Specifies whether the computer will operate as a time server that sends periodic time announcements to its clients.
   - name: AnnounceFlags
@@ -161,7 +180,7 @@ registry_settings:
 
 # folder creation settings
 
-folder_name: C:\jeric-test2
+folder_name: C:\jeric-test
 
 # file explorer settings
 
